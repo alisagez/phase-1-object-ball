@@ -50,8 +50,9 @@ function allPlayers() { //making a separate function to store all the players da
     const game = gameObject()
     const homePlayers = game.home.players //creates a variable that stores all the data within the home object
     const awayPlayers = game.away.players //creates a variable that stores all the data within the away object
-
-    return Object.assign({}, homePlayers, awayPlayers) //assigns to an empty object {} data from the homePlayers and awayPlayers variables
+    return {...homePlayers, ...awayPlayers}
+    //below - alternative way to accomplish the same return result
+    //return Object.assign({}, homePlayers, awayPlayers) //assigns to an empty object {} data from the homePlayers and awayPlayers variables
 }
 
 function homeTeam() {
@@ -68,18 +69,25 @@ function allTeams() {
 
 
 
-//this is a better version of the numPointsScoreed function, but it can be refacrored even further (see below)
+// //this is a better version of the numPointsScoreed function, but it can be refacrored even further (see below)
 // function numPointsScored(playerInput) {
-//     for (const playerName in allPlayers()) { //only necessary to have one loop to loop through the players (vs the previous version of the function (above) where it was necessary to loop through all the different layers of the object)
+//     const players = allPlayers()
+//     for (const playerName in players) { //only necessary to have one loop to loop through the players (vs the previous version of the function (above) where it was necessary to loop through all the different layers of the object)
 //     if (playerName === playerInput) {
-//         return allPlayers()[playerName].points
-//         }
+//         return players[playerName].points
+//         } 
+//     return 'Player not found.'    
 //     }
 // }
 
 function numPointsScored(playerInput) {
-    return allPlayers()[playerInput].points
+    //below are 3 different ways to do a return for this function (all constructed for both, the optimal case (player found), and non-optimal (player not found))
+    //return allPlayers()[playerInput] ? allPlayers()[playerInput].points : "Player not found."
+    //return allPlayers()[playerInput] && allPlayers()[playerInput].points
+    return allPlayers()[playerInput]?.points //the downside of this one is that it will not provide an error if there is no result found for the input (will always be undefined in that case)
 }
+
+console.log(numPointsScored("alisa"))
 
 
 //this works, but could be refactored further (see below)
@@ -92,12 +100,12 @@ function numPointsScored(playerInput) {
 // }
 
 function shoeSize(playerInput) {
-    return allPlayers()[playerInput].shoe
+    return allPlayers()[playerInput]?.shoe
 }
 
 function teamColors(teamInput) {
     for (const team in gameObject()) {
-        let teamObj = gameObject()[team]
+        const teamObj = gameObject()[team]
         if (teamObj.teamName === teamInput) {
             return teamObj.colors
         }
@@ -112,35 +120,51 @@ function teamNames() {
 
 
 function playerNumbers(teamInput) {
-    const playerJerseys = []
-    const allPlayers = homeTeam().teamName === teamInput ?
-    homeTeam().players : awayTeam().players
-    for (player in allPlayers) {
-        playerJerseys.push(allPlayers[player].number)
-    }
-    return playerJerseys
+    //const playerJerseys = []
+    const allPlayers = homeTeam().teamName === teamInput ? homeTeam().players : awayTeam().players //this works for two options (either/or logic), but will not support a third option. if there were more than 2 options, then a for loop should have been used
+    return Object.values(allPlayers).map(playerStat => playerStat.number)
+
+
+    // for (player in allPlayers) {
+    //     playerJerseys.push(allPlayers[player].number)
+    // }
+    // return playerJerseys
 }
+console.log(playerNumbers("Brooklyn Nets"))
 
 function playerStats(playerInput) {
     return allPlayers()[playerInput]
 }
 
+// function bigShoeRebounds() {
+//     let largestShoe = 0
+//     let playerWithLargestShoe = ''
+//     const playerObj = allPlayers()
+//     const allShoes = []
+//     const arrayAllPlayers = []
+//     for (player in playerObj) {
+//         arrayAllPlayers.push(player)
+//         allShoes.push(playerObj[player].shoe)
+//     }
+//     largestShoe = Math.max(...allShoes)
+
+//     playerWithLargestShoe = arrayAllPlayers[allShoes.indexOf(largestShoe)]
+//     return playerObj[playerWithLargestShoe].rebounds
+// }
+
 function bigShoeRebounds() {
-    let largestShoe = 0
-    let playerWithLargestShoe = ''
     const playerObj = allPlayers()
-    const allShoes = []
-    const arrayAllPlayers = []
-    for (player in playerObj) {
-        arrayAllPlayers.push(player)
-        allShoes.push(playerObj[player].shoe)
-
+    let largestShoe = 0
+    let playerWithLargestShoe = {}
+        for (const player in playerObj) {
+        if (playerObj[player].shoe > largestShoe) {
+            largestShoe = player.shoe
+            playerWithLargestShoe = allPlayers()[player]
+        }
     }
-    largestShoe = Math.max(...allShoes)
-
-    playerWithLargestShoe = arrayAllPlayers[allShoes.indexOf(largestShoe)]
-    return playerObj[playerWithLargestShoe].rebounds
+    return playerWithLargestShoe.rebounds
 }
+
 
 function mostPointsScored() {
     let mostPoints = 0
